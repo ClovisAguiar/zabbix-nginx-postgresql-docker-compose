@@ -1,0 +1,60 @@
+version: '3.1'
+services:
+  postgres-server:    # Serviço de banco de dados Postgres
+    image: postgres:latest
+    restart: always
+    environment:   # Variáveis de nome de usuário, senha e nome de banco de dados
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: suasenha
+      POSTGRES_DB: zabbix
+      PG_DATA: /var/lib/postgresql/data/pgdata # Armazenamento de dados
+  
+  zabbix-server:     # Principal serviço de software do servidor Zabbix
+    image: zabbix/zabbix-server-pgsql:ubuntu-latest
+    restart: always
+    environment:   # Variável de valor do banco de dados Postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: suasenha
+      POSTGRES_DB: zabbix
+      ZBX_HISTORYSTORAGETYPES: log,text # Variáveis de configuração do Zabbix
+      ZBX_DEBUGLEVEL: 1
+      ZBX_HOUSEKEEPINGFREQUENCY: 1
+      ZBX_MAXHOUSEKEEPERDELETE: 5000
+    depends_on:
+      - postgres-server
+    volumes:  # Volumes para scripts e arquivos relacionados que você pode adicionar
+      - /usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts
+  
+  zabbix-web:    # Interface web principal do Zabbix
+    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-latest
+    restart: always
+    environment:  # Variáveis do banco de dados Postgre
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: suasenha
+      POSTGRES_DB: zabbix
+      ZBX_SERVER_HOST: zabbix-server  # Variáveis relacionadas ao Zabbix e PHP
+      ZBX_POSTMAXSIZE: 64M
+      PHP_TZ: "America/Porto_Velho"  
+      ZBX_MAXEXECUTIONTIME: 500
+    depends_on:
+      - postgres-server
+      - zabbix-server
+    ports:    # Porta onde a interface do Zabbix está disponível
+      - 8090:80
+  
+  zabbix-agent:   # Serviço de agente Zabbix que rastreia o uso e envia para o servidor zabbix
+    image: zabbix/zabbix-agent:latest
+    privileged: true   # Modo de acesso para permitir o acesso a recursos
+    network_mode: "host"
+    restart: unless-stopped
+    environment:
+      - ZBX_SERVER_HOST=127.0.0.1 # IP/DNS do servidor Zabbix
+  adminer:  # Opcional para acessar bancos de dados
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  grafana-xxl:  # Serviço  que permite exibir várias métricas
+    image: monitoringartist/grafana-xxl:latest
+    ports:
+     - 3000:3000
