@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: zabbix
       POSTGRES_PASSWORD: sua_senha
-      POSTGRES_DB: zabbix
+      POSTGRES_DB: zabbix_db
       PG_DATA: /var/lib/postgresql/data/pgdata #data storage
 
   zabbix-server:
