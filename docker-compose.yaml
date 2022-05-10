@@ -10,7 +10,7 @@ services:
       - ./.vars.env
   
   zabbix-server:
-    image: zabbix/zabbix-server-pgsql:ubuntu-6.0-latest
+    image: zabbix/zabbix-server-pgsql
     container_name: zabbix-server-pgsql
     ports:
       - "10051:10051"
@@ -21,7 +21,7 @@ services:
       - ./.vars.env
 
   zabbix-web:
-    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-6.0-latest
+    image: zabbix/zabbix-web-nginx-pgsql
     container_name: zabbix-web-nginx-pgsql
     ports:
       - "80:80"
@@ -36,7 +36,7 @@ services:
       - ./.vars.env
   
   zabbix-agent:
-    image: zabbix/zabbix-agent:ubuntu-6.0-latest
+    image: zabbix/zabbix-agent
     container_name: zabbix-agent
     profiles:
       - full
@@ -49,25 +49,6 @@ services:
       - "zabbix-server"
     environment:
       ZBX_HOSTNAME: zabbix-agent
-
-  redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-    - "6379:6379"
-
-  cadvisor:
-    image: google/cadvisor
-    container_name: cadvisor
-    ports:
-    - "8080:8080"
-    volumes:
-    - /:/rootfs:ro
-    - /var/run:/var/run:rw
-    - /sys:/sys:ro
-    - /var/lib/docker/:/var/lib/docker:ro
-    depends_on:
-    - "redis"
 
   grafana:
     image: grafana/grafana:latest
@@ -82,7 +63,6 @@ services:
     ports:
       - '3000:3000'
     depends_on:
-      - "cadvisor"
       - "zabbix-server"
 
 volumes:
