@@ -9,7 +9,7 @@ services:
       - ./.vars.env
   
   zabbix-server:
-    image: zabbix/zabbix-server-pgsql
+    image: zabbix/zabbix-server-pgsql:ubuntu-6.0-latest
     ports:
       - "10051:10051"
     restart: always
@@ -19,9 +19,10 @@ services:
       - ./.vars.env
 
   zabbix-web:
-    image: zabbix/zabbix-web-nginx-pgsql
+    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-6.0-latest
     ports:
-      - "7000:8080"
+      - "80:80"
+      - "443:8443"
     restart: always
     depends_on:
       - "db"
@@ -32,7 +33,10 @@ services:
       - ./.vars.env
   
   zabbix-agent:
-    image: zabbix/zabbix-agent
+    image: zabbix/zabbix-agent:ubuntu-6.0-latest
+    profiles:
+      - full
+      - all
     ports:
       - "10050:10050"
     restart: always
@@ -41,6 +45,44 @@ services:
       - "zabbix-server"
     environment:
       ZBX_HOSTNAME: zabbix-agent
-    
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+    - "6379:6379"
+
+  cadvisor:
+    image: gcr.io/google-containers/cadvisor:latest
+    container_name: cadvisor
+    ports:
+    - "8080:8080"
+    volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    depends_on:
+    - "redis"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: 'root'
+    environment:
+      - GF_INSTALL_PLUGINS=alexanderzobnin-zabbix-app,raintank-worldping-app
+    volumes:
+      - grafana-config:/etc/grafana:rw
+      - grafana-data:/var/lib/grafana:rw
+      - grafana-home:/usr/share/grafana:rw
+    ports:
+      - '3000:3000'
+    depends_on:
+      - "cadvisor"
+      - "zabbix-server"
+
 volumes:
   pgdata:
+  grafana-config:
+  grafana-data:
+  grafana-home:
