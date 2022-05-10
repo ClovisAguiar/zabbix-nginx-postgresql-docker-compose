@@ -1,6 +1,6 @@
 version: '3.5'
 services:
-  pgsql-server:
+  db:
     image: postgres
     restart: always
     volumes:
@@ -14,17 +14,17 @@ services:
       - "10051:10051"
     restart: always
     depends_on:
-      - "pgsql-server"
+      - "db"
     env_file:
       - ./.vars.md
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql
     ports:
-      - "80:8080"
+      - "80:80"
     restart: always
     depends_on:
-      - "pgsql-server"
+      - "db"
       - "zabbix-server"
     environment:
       ZBX_SERVER_HOST: zabbix-server
@@ -37,7 +37,7 @@ services:
       - "10050:10050"
     restart: always
     depends_on:
-      - "pgsql-server"
+      - "db"
       - "zabbix-server"
     environment:
       ZBX_HOSTNAME: zabbix-agent
