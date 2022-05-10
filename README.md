@@ -1,4 +1,4 @@
-# Zabbix-Nginx-PostgreSQL-Docker-Compose
+# Zabbix-Nginx-PostgreSQL-Grafana-Docker-Compose
 
 <h2>Em desenvolvimento</h2>
 
