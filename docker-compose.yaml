@@ -12,9 +12,9 @@ services:
   zabbix-server:
     image: zabbix/zabbix-server-pgsql
     container_name: zabbix-server-pgsql
+    restart: always
     ports:
       - "10051:10051"
-    restart: always
     depends_on:
       - "db"
     env_file:
@@ -23,15 +23,16 @@ services:
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql
     container_name: zabbix-web-nginx-pgsql
-    ports:
-      - "80:80"
-      - "443:8443"
     restart: always
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+    volumes:
+      - /usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts
+    ports:
+      - "7000:8080"
     depends_on:
       - "db"
       - "zabbix-server"
-    environment:
-      ZBX_SERVER_HOST: zabbix-server
     env_file:
       - ./.vars.env
   
@@ -41,14 +42,15 @@ services:
     profiles:
       - full
       - all
+    restart: always
     ports:
       - "10050:10050"
-    restart: always
+    environment:
+      ZBX_HOSTNAME: zabbix-agent
     depends_on:
       - "db"
       - "zabbix-server"
-    environment:
-      ZBX_HOSTNAME: zabbix-agent
+    
 
   grafana:
     image: grafana/grafana:latest
