@@ -5,7 +5,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: uniron@2022
+      POSTGRES_PASSWORD: suasenha
       POSTGRES_DB: zabbix
     volumes:
       - /var/lib/postgresql/data:/var/lib/postgresql/data
@@ -16,7 +16,7 @@ services:
     environment:
       DB_SERVER_HOST: "zabbix-pgsq"
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: uniron@2022
+      POSTGRES_PASSWORD: suasenha
     ports:
       - '10051:10051'
     links:
@@ -30,7 +30,7 @@ services:
     environment:
       DB_SERVER_HOST: "zabbix-pgsq"
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: uniron@2022
+      POSTGRES_PASSWORD: suasenha
       ZBX_SERVER_HOST: zabbix-server
       PHP_TZ: "America/Porto_Velho"
     ports:
@@ -85,7 +85,6 @@ services:
       - '8080:8080'
 
 volumes:
-  pgdata:
   grafana-config:
   grafana-data:
   grafana-home:
