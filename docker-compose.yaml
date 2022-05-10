@@ -2,6 +2,7 @@ version: '3.5'
 services:
   db:
     image: postgres
+    container_name: postgres
     restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -10,6 +11,7 @@ services:
   
   zabbix-server:
     image: zabbix/zabbix-server-pgsql:ubuntu-6.0-latest
+    container_name: zabbix-server-pgsql
     ports:
       - "10051:10051"
     restart: always
@@ -20,6 +22,7 @@ services:
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql:ubuntu-6.0-latest
+    container_name: zabbix-web-nginx-pgsql
     ports:
       - "80:80"
       - "443:8443"
@@ -34,6 +37,7 @@ services:
   
   zabbix-agent:
     image: zabbix/zabbix-agent:ubuntu-6.0-latest
+    container_name: zabbix-agent
     profiles:
       - full
       - all
@@ -53,7 +57,7 @@ services:
     - "6379:6379"
 
   cadvisor:
-    image: gcr.io/google-containers/cadvisor:latest
+    image: google/cadvisor
     container_name: cadvisor
     ports:
     - "8080:8080"
@@ -70,7 +74,7 @@ services:
     container_name: grafana
     user: 'root'
     environment:
-      - GF_INSTALL_PLUGINS=alexanderzobnin-zabbix-app,raintank-worldping-app
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,briangann-gauge-panel,natel-plotly-panel,grafana-simple-json-datasource
     volumes:
       - grafana-config:/etc/grafana:rw
       - grafana-data:/var/lib/grafana:rw
