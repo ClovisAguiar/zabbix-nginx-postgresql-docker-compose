@@ -5,12 +5,9 @@ services:
     restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: suasenha
-      POSTGRES_DB: zabbix
-      DB_SERVER_HOST: db
-  
+    env_file:
+      - ./.vars.md
+
   zabbix-server:
     image: zabbix/zabbix-server-pgsql
     ports:
@@ -18,27 +15,22 @@ services:
     restart: always
     depends_on:
       - "db"
-    environment:
-      POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: suasenha
-      POSTGRES_DB: zabbix
-      DB_SERVER_HOST: db
+    env_file:
+      - ./.vars.md
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql
     ports:
-      - "80:80"
+      - "7000:8080"
     restart: always
     depends_on:
       - "db"
       - "zabbix-server"
     environment:
       ZBX_SERVER_HOST: zabbix-server
-      POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: suasenha
-      POSTGRES_DB: zabbix
-      DB_SERVER_HOST: db
-  
+    env_file:
+      - ./.vars.md
+
   zabbix-agent:
     image: zabbix/zabbix-agent
     ports:
