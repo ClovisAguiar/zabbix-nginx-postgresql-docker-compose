@@ -1,51 +1,64 @@
 version: '3.5'
 services:
-  zabbix-pgsql:
+  zabbix-pgsq:
     image: postgres
     restart: always
     environment:
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: sua_senha
-      POSTGRES_DB: zabbix_db
-      PG_DATA: /var/lib/postgresql/data/pgdata #data storage
+      POSTGRES_PASSWORD: uniron@2022
+      POSTGRES_DB: zabbix
+    volumes:
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
 
   zabbix-server:
     image: zabbix/zabbix-server-pgsql
-    ports:
-      - "10051:10051"
     restart: always
     environment:
+      DB_SERVER_HOST: "zabbix-pgsq"
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: sua_senha
-      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD: uniron@2022
+    ports:
+      - '10051:10051'
+    links:
+      - zabbix-pgsq
     depends_on:
-      - "zabbix-pgsql"
+      - zabbix-pgsq
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql
     restart: always
     environment:
+      DB_SERVER_HOST: "zabbix-pgsq"
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: sua_senha
-      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD: uniron@2022
       ZBX_SERVER_HOST: zabbix-server
       PHP_TZ: "America/Porto_Velho"
-    depends_on:
-      - "zabbix-pgsql"
-      - "zabbix-server"
     ports:
-      - "80:8080"
+      - '80:8080'
+    links:
+      - zabbix-pgsq
+      - zabbix-server
+    depends_on:
+      - zabbix-pgsq
+      - zabbix-server
+    volumes:
+      - /etc/ssl/nginx:/etc/ssl/nginx:ro
+      - /var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+      - /var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
 
   zabbix-agent:
     image: zabbix/zabbix-agent
-    ports:
-      - "10050:10050"
-    restart: always
-    depends_on:
-      - "zabbix-pgsql"
-      - "zabbix-server"
+    restart: unless-stopped
     environment:
       ZBX_HOSTNAME: zabbix-agent
+    ports:
+      - '10050:10050'
+    links:
+      - zabbix-pgsq
+      - zabbix-server
+    depends_on:
+      - zabbix-pgsq
+      - zabbix-server
 
   grafana:
     image: grafana/grafana:latest
@@ -58,14 +71,18 @@ services:
       - grafana-home:/usr/share/grafana:rw
     ports:
       - '3000:3000'
+    links:
+      - zabbix-pgsq
+      - zabbix-server
     depends_on:
-      - "zabbix-server"
+      - zabbix-pgsq
+      - zabbix-server
 
   adminer:  #Optional for accessing databases
     image: adminer
     restart: always
     ports:
-      - 8080:8080
+      - '8080:8080'
 
 volumes:
   pgdata:
