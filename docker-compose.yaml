@@ -1,22 +1,24 @@
-version: '3.5'
+version: '3.7'
 services:
   zabbix-pgsq:
     image: postgres
+    container_name: zabbix-pgsq
     restart: always
     environment:
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: suasenha
+      POSTGRES_PASSWORD: uniron@2022
       POSTGRES_DB: zabbix
     volumes:
       - /var/lib/postgresql/data:/var/lib/postgresql/data
 
   zabbix-server:
     image: zabbix/zabbix-server-pgsql
+    container_name: zabbix-server
     restart: always
     environment:
-      DB_SERVER_HOST: "zabbix-pgsq"
+      DB_SERVER_HOST: zabbix-pgsq
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: suasenha
+      POSTGRES_PASSWORD: uniron@2022
     ports:
       - '10051:10051'
     links:
@@ -26,11 +28,12 @@ services:
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql
+    container_name: zabbix-web
     restart: always
     environment:
-      DB_SERVER_HOST: "zabbix-pgsq"
+      DB_SERVER_HOST: zabbix-pgsq
       POSTGRES_USER: zabbix
-      POSTGRES_PASSWORD: suasenha
+      POSTGRES_PASSWORD: uniron@2022
       ZBX_SERVER_HOST: zabbix-server
       PHP_TZ: "America/Porto_Velho"
     ports:
@@ -48,6 +51,7 @@ services:
 
   zabbix-agent:
     image: zabbix/zabbix-agent
+    container_name: zabbix-agent
     restart: unless-stopped
     environment:
       ZBX_HOSTNAME: zabbix-agent
@@ -60,8 +64,33 @@ services:
       - zabbix-pgsq
       - zabbix-server
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+    - '6379:6379'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - '8080:8080'
+    restart: always
+    deploy:
+      mode: global
+    links:
+      - redis
+    depends_on:
+      - redis
+
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana
+    container_name: grafana
     user: 'root'
     environment:
       - GF_INSTALL_PLUGINS=grafana-clock-panel,briangann-gauge-panel,natel-plotly-panel,grafana-simple-json-datasource
@@ -74,15 +103,18 @@ services:
     links:
       - zabbix-pgsq
       - zabbix-server
+      - cadvisor
     depends_on:
       - zabbix-pgsq
       - zabbix-server
+      - cadvisor
 
-  adminer:  #Optional for accessing databases
+  adminer:
     image: adminer
+    container_name: adminer
     restart: always
     ports:
-      - '8080:8080'
+      - '8090:8080'
 
 volumes:
   grafana-config:
